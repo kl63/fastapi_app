@@ -3,4 +3,5 @@ uvicorn[standard]
 gunicorn
 anyio>=4.7.0
 starlette>=0.41.3
-
+SQLAlchemy
+asyncpg
