@@ -5,3 +5,11 @@ anyio>=4.7.0
 starlette>=0.41.3
 SQLAlchemy
 asyncpg
+alembic
+python-dotenv
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic[email]
+pydantic-settings
+loguru
+click
