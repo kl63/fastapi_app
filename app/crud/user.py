@@ -57,11 +57,20 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def authenticate(
         self, db: AsyncSession, *, email: str, password: str
     ) -> Optional[User]:
+        # First try email lookup
         user = await self.get_by_email(db, email=email)
+        
+        # If not found by email, try username lookup
+        if not user:
+            user = await self.get_by_username(db, username=email)
+            
+        # If not found by either method
         if not user:
             return None
+            
         if not verify_password(password, user.hashed_password):
             return None
+            
         return user
 
     async def is_active(self, user: User) -> bool:
