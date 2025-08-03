@@ -11,15 +11,15 @@ from app.schemas.user import UserCreate, UserUpdate
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def get_by_email(self, db: AsyncSession, *, email: str) -> Optional[User]:
-        result = await db.execute(select(User).where(User.email == email))
+        result = await db.execute(select(self.model).where(self.model.email == email))
         return result.scalars().first()
 
     async def get_by_username(self, db: AsyncSession, *, username: str) -> Optional[User]:
-        result = await db.execute(select(User).where(User.username == username))
+        result = await db.execute(select(self.model).where(self.model.username == username))
         return result.scalars().first()
 
     async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> User:
-        db_obj = User(
+        db_obj = self.model(
             email=obj_in.email,
             username=obj_in.username,
             hashed_password=get_password_hash(obj_in.password),
