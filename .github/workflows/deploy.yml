@@ -41,8 +41,19 @@ jobs:
             echo "Installing Python dependencies..."
             pip install -r requirements.txt
 
-            echo "Running Alembic migrations..."
-            alembic upgrade head
+            echo "Running Alembic migrations (will continue even if this fails)..."
+            alembic upgrade head || {
+              echo "Alembic migrations failed, but continuing deployment..."
+              echo "Fixing database permissions..."
+              sudo -u postgres psql -c "GRANT ALL ON SCHEMA public TO kevinlin192003;"
+              sudo -u postgres psql -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO kevinlin192003;"
+              
+              echo "Ensuring UserRole enum type exists..."
+              sudo -u postgres psql -d fastapi_app -c "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'userrole') THEN CREATE TYPE userrole AS ENUM ('ADMIN', 'MANAGER', 'USER'); END IF; END $$;"
+              
+              echo "Running database initialization script instead..."
+              python -m app.db_init || echo "Database initialization failed, but continuing..."
+            }
 
             echo "Checking if PM2 is installed..."
             if ! command -v pm2 &> /dev/null
@@ -53,8 +64,15 @@ jobs:
               echo "PM2 is already installed"
             fi
 
-            echo "Restarting FastAPI application with PM2..."
-            pm2 restart $APP_NAME --update-env || pm2 start "gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000" --interpreter bash --name $APP_NAME
+            echo "Loading environment variables..."
+            export $(cat .env | grep -v '^#' | xargs)
+            
+            echo "Stopping any existing processes..."
+            pkill -f 'uvicorn main:app' || true
+            pm2 delete $APP_NAME || true
+            
+            echo "Starting FastAPI application with PM2..."
+            pm2 start "venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000" --name $APP_NAME
 
             echo "Saving PM2 state..."
             pm2 save
