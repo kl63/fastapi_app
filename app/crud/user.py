@@ -1,11 +1,11 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, Type
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
-from app.models.user import User, UserRole
+from app.models.user import User, GeneralUser, FreshCartUser, UserRole
 from app.schemas.user import UserCreate, UserUpdate
 
 
@@ -74,4 +74,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return user.role in [UserRole.ADMIN, UserRole.MANAGER]
 
 
-user = CRUDUser(User)
+# Create separate CRUD instances for each frontend
+general_user = CRUDUser(GeneralUser)
+freshcart_user = CRUDUser(FreshCartUser)

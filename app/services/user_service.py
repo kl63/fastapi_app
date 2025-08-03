@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud.user import user
+from app.crud.user import general_user as user
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate, User as UserSchema
 

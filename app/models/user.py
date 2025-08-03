@@ -11,8 +11,8 @@ class UserRole(str, enum.Enum):
 
 
 class User(Base):
-    __tablename__ = "users"
-
+    __abstract__ = True
+    
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     username = Column(String, unique=True, index=True)
@@ -21,3 +21,12 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class GeneralUser(User):
+    __tablename__ = "users_general"
+
+
+class FreshCartUser(User):
+    __tablename__ = "users_freshcart"
+
